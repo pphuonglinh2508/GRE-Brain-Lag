@@ -1,0 +1,12 @@
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.log
+node_modules/
+
+# Flashcard images come from Quizlet sets and are for personal use only,
+# so they stay on your computer and are not uploaded. The site falls back
+# to emoji scenes when they're missing. See README > "Flashcard images".
+images/
