@@ -6,7 +6,7 @@
 
 ## Features
 
-- **Flashcards** for 1,107 words in 37 groups: pronunciation (with audio), definition, Vietnamese meaning, example sentence, illustration, and a mnemonic.
+- **Flashcards** for 1,107 words in 37 groups: pronunciation (with audio), definition, Vietnamese meaning, example sentence, a mnemonic, and an emoji scene (or a custom drawing for some words).
 - **Part of speech everywhere**, e.g. *temper (v, n)*, with the GRE meaning first.
 - **Sound-hook mnemonics** in one pattern: *SOUND HOOK → image → meaning* (e.g. *LACK-onic: he lacks words, so he says very little*).
 - **Comics**: each group is a short story starring Mai, Bảo, Bà, Kevin, and Mochi the cat. Every word in the group shows up in context, in real speech bubbles, thought clouds, and caption boxes drawn inside the panels. Tap a bold word to open its card.
@@ -30,7 +30,7 @@ python3 -m http.server 8000
 
 ## Publish with GitHub Pages
 
-1. Create a new repository on GitHub (e.g. `gre-brain-lag`) and push this folder to it with GitHub Desktop or `git` (the `images/` folder is skipped automatically).
+1. Create a new repository on GitHub (e.g. `gre-brain-lag`) and push this folder to it with GitHub Desktop or `git`. The `images/` folder is skipped automatically.
 2. In the repository, go to **Settings → Pages**.
 3. Under **Build and deployment**, set **Source** to *Deploy from a branch*, choose the `main` branch and the `/ (root)` folder, then **Save**.
 4. After a minute or two, the site is live at `https://<your-username>.github.io/gre-brain-lag/`.
@@ -38,16 +38,25 @@ python3 -m http.server 8000
 ## Project structure
 
 ```
-index.html            Page shell: header, tabs, empty views
-css/style.css         All styles (colors, layout, cards, comics, quiz)
-js/art.js             Comic art kit (characters, props, backgrounds),
-                      word illustrations, and the speech-bubble engine
-js/data/words.js      The 37 vocab groups (SETS)
-js/data/clusters.js   Same-meaning families for the synonym drills
-js/data/comics.js     One comic story per group (COMICS)
-js/sync-config.js     Your Firebase settings for cross-device sync (optional)
-js/app.js             App logic: flashcards, groups, drills, quiz, comics, sync
-images/               Flashcard pictures + images.js map (local only, not in git)
+gre-brain-lag/
+├── index.html            Page shell: header, tabs, empty views
+├── css/
+│   └── style.css         All styles (colors, layout, cards, comics, quiz)
+├── js/
+│   ├── app.js            App logic: flashcards, groups, drills, quiz, comics, sync
+│   ├── art.js            Comic art kit (characters, props, backgrounds),
+│   │                     custom word drawings, and the speech-bubble engine
+│   ├── sync-config.js    Your Firebase settings for cross-device sync (optional)
+│   └── data/
+│       ├── words.js      The 37 vocab groups (SETS)
+│       ├── clusters.js   Same-meaning families for the synonym drills
+│       └── comics.js     One comic story per group (COMICS)
+├── images/               Optional: your own flashcard pictures (local only, not in git)
+├── README.md             This file
+├── LICENSE               MIT License
+├── .gitignore            Keeps images/ and system files out of git
+├── .gitattributes        Line-ending settings for git
+└── .nojekyll             Tells GitHub Pages to serve the files as they are
 ```
 
 Scripts are plain `<script>` files loaded in order, so `art.js` and the data files must load before `app.js`.
@@ -60,7 +69,7 @@ Scripts are plain `<script>` files loaded in order, so `art.js` and the data fil
 [word, pronunciation, definition, synonym, example, mnemonic, emoji, sound effect, Vietnamese, part of speech]
 ```
 
-The text before the first `:` in a mnemonic is shown in bold.
+The text before the first `:` in a mnemonic is shown in bold. The `emoji` and `sound effect` fields make the card's emoji scene.
 
 **A comic panel** lives in `js/data/comics.js`:
 
@@ -100,7 +109,7 @@ Sync uses [Firebase](https://firebase.google.com/) on the free Spark plan (no cr
 4. **Create the database:** *Build → Firestore Database → Create database*. Pick a nearby location (e.g. `asia-southeast1`, Singapore) and **production mode**.
 5. **Lock it down:** in Firestore, open the **Rules** tab, replace everything with this, then **Publish**:
 
-   ```
+```
    rules_version = '2';
    service cloud.firestore {
      match /databases/{database}/documents {
@@ -109,39 +118,62 @@ Sync uses [Firebase](https://firebase.google.com/) on the free Spark plan (no cr
        }
      }
    }
-   ```
+```
 
    This means each signed-in person can only read and write their own progress.
 6. **Connect the site:** *Project settings (gear icon) → General → Your apps →* the web icon `</>`. Register an app (skip Firebase Hosting), then copy the `firebaseConfig` values into `js/sync-config.js`:
 
-   ```js
+```js
    window.FIREBASE_CONFIG = {
      apiKey: "AIza...",
      authDomain: "gre-brain-lag.firebaseapp.com",
      projectId: "gre-brain-lag",
      appId: "1:1234567890:web:abc123"
    };
-   ```
+```
 
    These values are meant to be public; the rules from step 5 are what protect the data.
 7. Commit and push. On your laptop *and* your phone, open the site → **Quiz** → **Sign in with Google** with the same account. Done.
 
 Firebase's menu names change now and then; if a label looks different, look for the closest match.
 
-## Flashcard images
+## Use your own pictures
 
-The flashcard pictures came from Quizlet sets. Quizlet's terms don't allow re-publishing its content, and set images often belong to Quizlet's image partners or other users, so they are **kept out of the GitHub repo** (`images/` is in `.gitignore`).
+Every card comes with an emoji scene. If you'd rather study with pictures of your own, you can add them. They stay on your computer and are never uploaded.
 
-- **On your computer**, keep the `images/` folder inside the project. Opening `index.html` locally shows the pictures.
-- **On the live site**, `images/` isn't uploaded, so cards automatically show the emoji scenes and custom drawings instead.
-- To use your own pictures online, put them in `images/`, list them in `images/images.js`, and remove `images/` from `.gitignore`.
+1. Make a folder called `images` next to `index.html` and put your pictures in it. Any of .jpg, .png, .webp, .gif or .svg works, with any file names you like.
+2. In that folder, create a file called `images.js`.
+3. In `images.js`, add one line per word, using `"group:word"` and the picture's path:
+
+```js
+   const IMG = {
+     "1:abound": "images/g01-abound.jpg",
+     "3:arduous": "images/climbing.png"
+   };
+```
+
+   The group number and word must match the card exactly (the group is shown on every flashcard). If a word appears in two groups, list it twice, once per group.
+4. Open `index.html` from the project folder (not from inside a zip). Cards with a picture now show it; the rest keep their emoji scene, and so does any picture that fails to load.
+
+**Keep it private.** The whole `images/` folder is listed in `.gitignore`, so GitHub Desktop and `git` won't upload your pictures. That also means your pictures only show when you open the site from your own computer, not on the public website.
+
+**Where to get pictures:** use photos or drawings you made yourself, or images with a license that allows reuse (for example [Unsplash](https://unsplash.com), [Pixabay](https://pixabay.com) or [Openverse](https://openverse.org); check each image's license). Don't download pictures from flashcard or study sites: their terms usually don't allow it, and the images often belong to someone else.
 
 ## Credits
 
-- Word groups follow the GregMAT vocabulary list.
-- Flashcard pictures (local copy only, not published) came from Quizlet sets and belong to their owners. GregMAT owns its word list and materials; this is an unofficial personal study tool and is not affiliated with GregMAT or ETS. GRE® is a registered trademark of ETS.
-- Mnemonics, example sentences, comics, and code by Linh (with help from Claude).
-- Fonts: [Be Vietnam Pro](https://fonts.google.com/specimen/Be+Vietnam+Pro) and [Bricolage Grotesque](https://fonts.google.com/specimen/Bricolage+Grotesque) via Google Fonts (SIL Open Font License).
+**Word list**
+- Vocabulary groups by [GregMAT](https://www.gregmat.com).
+- Groups 1–37 from the Quizlet set [GregMAT Vocabulary Groups/Sets 1–37](https://quizlet.com/1094578331/gregmat-vocabulary-groupssets-1-37-flash-cards/) by **@ahtn**.
+- Additional credit to:
+  - **@Blackdeathanton** for Groups 1–28
+  - **@inch_rvndr** for Groups 29–32
+  - **@pawanw2** for Groups 33–37
+
+**This project**
+- Mnemonics, example sentences, comics, and code by Linh, with help from Claude.
+- Fonts: [Be Vietnam Pro](https://fonts.google.com/specimen/Be+Vietnam+Pro) and [Bricolage Grotesque](https://fonts.google.com/specimen/Bricolage+Grotesque), via Google Fonts (SIL Open Font License).
+
+This is an unofficial personal study tool. It is not affiliated with or endorsed by GregMAT, Quizlet, or ETS. GRE® is a registered trademark of ETS.
 
 ## License
 
